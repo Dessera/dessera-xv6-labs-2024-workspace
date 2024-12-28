@@ -1,0 +1,17 @@
+[package]
+name = "xv6-labs-rs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]
+test = false
+bench = false
+
+[[bin]]
+name = "hello"
+test = false
+bench = false
+
+
+[dependencies]

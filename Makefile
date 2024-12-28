@@ -169,7 +169,7 @@ $U/_forktest: $U/forktest.o $(ULIB)
 	$(OBJDUMP) -S $U/_forktest > $U/forktest.asm
 
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
-	gcc $(XCFLAGS) -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
+	gcc $(XCFLAGS) -Werror -Wall -Wno-stringop-truncation -I. -o mkfs/mkfs mkfs/mkfs.c
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
@@ -194,8 +194,10 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-
-
+	$U/_sleep\
+	$U/_pingpong\
+	$U/_primes\
+	$U/_find
 
 
 ifeq ($(LAB),syscall)
@@ -272,9 +274,32 @@ ifeq ($(LAB),util)
 	UEXTRA += user/xargstest.sh
 endif
 
+# ! Dessera: some special programs written in rs
 
-fs.img: mkfs/mkfs README $(UEXTRA) $(UPROGS)
-	mkfs/mkfs fs.img README $(UEXTRA) $(UPROGS)
+RTG=target
+RSRC=src
+ROBJ=target/objs
+
+RS_UPROGS=\
+	$(RTG)/_hello
+
+# TODO: there are more .rs files to be added here
+$(ROBJ)/xv6_labs_rs.o: $(RSRC)/lib.rs
+	cargo rustc --lib -- --emit obj
+	python cargo-postproc.py xv6_labs_rs
+
+$(ROBJ)/%.o: $(RSRC)/bin/%.rs
+	cargo rustc --bin $(basename $(notdir $<)) -- --emit obj
+	python cargo-postproc.py $(basename $(notdir $<))
+
+$(RTG)/_%: $(ROBJ)/%.o $(ULIB) $(ROBJ)/xv6_labs_rs.o
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
+
+# ! Dessera: end of special programs
+
+
+fs.img: mkfs/mkfs README $(UEXTRA) $(UPROGS) $(RS_UPROGS)
+	mkfs/mkfs fs.img README $(UEXTRA) $(UPROGS) $(RS_UPROGS)
 
 -include kernel/*.d user/*.d
 
@@ -285,6 +310,8 @@ clean:
 	$K/kernel \
 	mkfs/mkfs fs.img .gdbinit __pycache__ xv6.out* \
 	ph barrier
+# ! Dessera: remove the generated files
+	rm -rf target
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
