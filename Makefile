@@ -277,23 +277,21 @@ endif
 # ! Dessera: some special programs written in rs
 
 RTG=target
+RAWRTG=$(RTG)/riscv64gc-unknown-none-elf/release
 RSRC=src
-ROBJ=target/objs
+
+RBIN=$(RSRC)/bin
+RLIB=$(shell find $(RSRC) -name '*.rs' -not -path '*/bin/*')
 
 RS_UPROGS=\
 	$(RTG)/_hello
 
-# TODO: there are more .rs files to be added here
-$(ROBJ)/xv6_labs_rs.o: $(RSRC)/lib.rs
-	cargo rustc --lib -- --emit obj
-	python cargo-postproc.py xv6_labs_rs
-
-$(ROBJ)/%.o: $(RSRC)/bin/%.rs
-	cargo rustc --bin $(basename $(notdir $<)) -- --emit obj
-	python cargo-postproc.py $(basename $(notdir $<))
-
-$(RTG)/_%: $(ROBJ)/%.o $(ULIB) $(ROBJ)/xv6_labs_rs.o
-	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
+$(RTG)/_%: $(RBIN)/%.rs $(RLIB) $(ULIB)
+	LINKER_TEMPLATE=$U/user.ld \
+	ULIBS="$(ULIB)" \
+	LINKER_ARGS="$(LDFLAGS)" \
+		cargo build --release --bin $(basename $(notdir $<))
+	cp $(RAWRTG)/$(basename $(notdir $<)) $@
 
 # ! Dessera: end of special programs
 

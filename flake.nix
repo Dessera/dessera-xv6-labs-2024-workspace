@@ -41,7 +41,7 @@
 
           corssPkgs = pkgs.pkgsCross.riscv64;
 
-          rsPkg = pkgs.rust-bin.stable.latest.default.override {
+          rsPkg = pkgs.rust-bin.nightly.latest.default.override {
             extensions = [
               "rust-analyzer"
               "rust-src"

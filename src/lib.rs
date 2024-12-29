@@ -1,5 +1,4 @@
 #![no_std]
 
-pub fn foo() -> &'static str {
-    "Hello from Rust!"
-}
+pub mod memory;
+pub mod unistd;

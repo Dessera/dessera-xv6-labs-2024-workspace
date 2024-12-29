@@ -12,6 +12,3 @@ bench = false
 name = "hello"
 test = false
 bench = false
-
-
-[dependencies]
