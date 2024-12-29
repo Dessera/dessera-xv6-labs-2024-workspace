@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
+name = "std_xv6"
 crate-type = ["rlib"]
 test = false
 bench = false
@@ -12,3 +13,6 @@ bench = false
 name = "hello"
 test = false
 bench = false
+
+[dependencies]
+no_std_io2 = { version = "0.8.1", features = ["alloc"] }
